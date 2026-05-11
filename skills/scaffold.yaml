@@ -1,0 +1,24 @@
+name: scaffold
+displayName: Scaffold Feature
+description: Scaffold a new feature, component, or module following existing patterns
+tools:
+  - view
+  - grep
+  - glob
+  - create
+  - edit
+prompt: |
+  Scaffold a new: {{args}}
+
+  Steps:
+  1. Explore the codebase to understand existing patterns, conventions, and structure
+  2. Identify the right location for the new code
+  3. Look at 2-3 similar existing files as templates
+  4. Create the new file(s) following the same patterns exactly:
+     - File naming and structure
+     - Import style
+     - Export style
+     - Error handling patterns
+  5. Wire it in to any registry, index, or router if needed
+
+  Do NOT invent new patterns. Mirror existing ones precisely.

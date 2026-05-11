@@ -1,0 +1,84 @@
+name: cluster-review
+displayName: Cluster Code Review
+description: |
+  Distributed code review: observer on antonjr1, analyst on antonjr2,
+  critic back on antonjr1, synthesizer on local. Maximizes GPU parallelism.
+
+  # Execution Model
+  Sequential across cluster nodes: observer → analyst → critic → synthesizer.
+  Data flow: each agent receives the prior agent's output via template variables.
+  Failure: pipeline halts at the failing step; cluster dispatch may timeout per-node.
+
+cluster:
+  strategy: round-robin
+  dispatch: remote-llm
+
+agents:
+  - role: observer
+    agent: observer
+    node: antonjr1
+    description: Scan the codebase and gather facts
+
+  - role: analyst
+    agent: analyst
+    node: antonjr2
+    description: Analyze code quality, patterns, and risks
+
+  - role: critic
+    agent: critic
+    node: antonjr1
+    description: Challenge findings and identify missed issues
+
+  - role: synthesizer
+    agent: synthesizer
+    strategy: local
+    description: Produce final review report
+
+workflow:
+  - role: observer
+    task: >
+      Examine the codebase in the current directory. Focus on ./agents and ./swarms.
+      List the relevant YAML files, how they are loaded, and anything unusual.
+  - role: analyst
+    task: |
+      Given the observer report:
+
+      {{observer.output}}
+
+      Analyze the YAML integration, runtime wiring, and likely failure modes.
+      Confirm whether the exposed MCP node tool is `dlmcp_nodes`.
+  - role: critic
+    task: |
+      Given the analysis:
+
+      {{analyst.output}}
+
+      Challenge the findings. What was missed? What assumptions are weak?
+      Call out any blocker that would keep the workflow from being production-reliable.
+  - role: synthesizer
+    task: |
+      Synthesize the full review:
+
+      OBSERVATIONS:
+      {{observer.output}}
+
+      ANALYSIS:
+      {{analyst.output}}
+
+      CRITIQUE:
+      {{critic.output}}
+
+      Produce an actionable review in 8 bullets max.
+
+coordinator_prompt: |
+  You are coordinating a distributed code review across the cluster.
+
+  1. delegate(role='observer', task='Examine the codebase in the current directory. List all files, identify the language, framework, and structure. Note anything unusual.')
+  2. delegate(role='analyst', task='Given the observer report:\n\n<observer output>\n\nAnalyze code quality, patterns, potential bugs, and architectural decisions.')
+  3. delegate(role='critic', task='Given the analysis:\n\n<analyst output>\n\nChallenge the findings. What was missed? What risks were downplayed? What assumptions are wrong?')
+  4. delegate(role='synthesizer', task='Synthesize the full review:\n\nOBSERVATIONS: <observer>\nANALYSIS: <analyst>\nCRITIQUE: <critic>\n\nProduce a concise, actionable code review.')
+
+  Return the synthesizer output.
+
+coordinator_tools:
+  - delegate

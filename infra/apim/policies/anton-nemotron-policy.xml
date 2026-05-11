@@ -1,0 +1,53 @@
+<!--
+  Anton Nemotron/llama-server APIM API policy.
+
+  APIM service: darbotlabs
+  Hosted APIM URL: https://darbotlabs.azure-api.net
+  Self-hosted gateway registration: anton
+  Self-hosted gateway config endpoint: darbotlabs.configuration.azure-api.net
+
+  Enabled backend:
+    primary anton    http://10.1.0.4:30000
+
+  Peer backends available but not enabled by this policy:
+    antonjr1         http://10.1.0.5:30000
+    antonjr2         http://10.1.0.6:30000
+
+  Use APIM-supported backend pools/load balancing in ARM/Bicep/Azure CLI when
+  enabling peers. This policy intentionally uses a single primary set-backend-service
+  target and does not invent policy-only load-balancing syntax.
+
+  LiveKit :7880 and PersonaPlex/Moshi :8998 websocket/media routes are intentionally
+  not exposed here pending explicit APIM websocket/WebRTC support validation.
+-->
+<policies>
+  <inbound>
+    <base />
+    <validate-jwt header-name="Authorization"
+                  failed-validation-httpcode="401"
+                  failed-validation-error-message="Unauthorized. Bearer access token is missing or invalid."
+                  require-scheme="Bearer"
+                  require-expiration-time="true"
+                  require-signed-tokens="true"
+                  clock-skew="300">
+      <openid-config url="https://login.microsoftonline.com/{{ENTRA_TENANT_ID}}/v2.0/.well-known/openid-configuration" />
+      <audiences>
+        <audience>{{ENTRA_AUDIENCE}}</audience>
+      </audiences>
+      <issuers>
+        <issuer>https://login.microsoftonline.com/{{ENTRA_TENANT_ID}}/v2.0</issuer>
+        <issuer>https://sts.windows.net/{{ENTRA_TENANT_ID}}/</issuer>
+      </issuers>
+    </validate-jwt>
+    <set-backend-service base-url="http://10.1.0.4:30000" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

@@ -1,0 +1,52 @@
+name: iterative-refinement
+displayName: Iterative Refinement Swarm
+description: |
+  Multi-round feedback loop for improving implementations. Implements an
+  initial solution, reviews it for issues, refines based on feedback, and
+  validates with tests. Loops up to 3 times until the validator passes.
+
+  # Execution Model
+  Sequential with feedback loop (max 3 iterations).
+  Data flow: implementer → reviewer → refiner → validator; validator failures loop back to refiner with findings.
+  Failure: after 3 iterations, remaining issues are reported in final output.
+
+agents:
+  - role: implementer
+    agent: coder
+    description: Implements the initial solution based on the task requirements
+
+  - role: reviewer
+    agent: critic
+    description: Reviews the implementation and identifies issues, bugs, and improvements
+
+  - role: refiner
+    agent: coder
+    description: Applies fixes and improvements based on review feedback
+
+  - role: validator
+    agent: tester
+    description: Runs tests and validates that the solution is correct and complete
+
+coordinator_prompt: |
+  You are the iterative refinement coordinator. You orchestrate a feedback loop
+  to progressively improve an implementation until it passes validation.
+
+  Process:
+  1. delegate(role='implementer', task='<original task>') — get an initial implementation
+  2. delegate(role='reviewer', task='Review the implementation just completed for <original task>. Identify bugs, logic errors, missing edge cases, and style issues.')
+  3. If reviewer found issues:
+     delegate(role='refiner', task='Apply the following fixes to the implementation:\n\n<paste reviewer findings>')
+  4. delegate(role='validator', task='Run tests and validate the solution for <original task>. Report whether all tests pass and the solution meets requirements.')
+  5. If validator finds issues, loop back to step 3 (refiner) with the validator's findings.
+
+  IMPORTANT: Maximum 3 iterations of the refine → validate loop. If issues
+  persist after 3 iterations, report the remaining issues in the final output.
+
+  Final report format:
+  ## Iterative Refinement Complete
+
+  **Iterations:** <number of refine/validate cycles>
+  **What was implemented:** (summary from implementer)
+  **Issues found and fixed:** (aggregated from all review/validate rounds)
+  **Remaining issues:** (any unresolved after max iterations, or "None")
+  **Final status:** PASSED | ISSUES REMAINING

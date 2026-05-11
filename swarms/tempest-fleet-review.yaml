@@ -1,0 +1,134 @@
+name: tempest-fleet-review
+displayName: Tempest Fleet Review
+description: |
+  Anton observes the local Tempest AI repo, antonjr1 and antonjr2 perform
+  independent remote reviews on their own copies, and anton judges the results.
+
+  # Execution Model
+  Sequential with parallel middle: observer → (reviewer_jr1 + reviewer_jr2 in parallel) → judge.
+  Data flow: observer report feeds both reviewers; both reviewer outputs feed the judge.
+  Failure: per-agent timeout (180s for reviewers); judge works with available reports.
+
+cluster:
+  strategy: round-robin
+  dispatch: remote-agent
+  timeout: 420
+
+agents:
+  - role: observer
+    agent: observer
+    strategy: local
+    description: Anton gathers the ground-truth facts from the local Tempest AI tree
+
+  - role: reviewer_jr1
+    node: antonjr1
+    dispatch: remote-agent
+    timeout: 180
+    description: Antonjr1 reviews anton's observer facts for architecture, training flow, and operational shape
+    prompt: |
+      You are a remote software reviewer running on antonjr1.
+
+      Use exactly one bash command to gather:
+      - hostname
+      - pwd
+
+      Do not use any other tools for this review.
+      Rely only on the observer report from anton plus your own reasoning.
+      Start with hostname and pwd from the bash result.
+      End with 4 bullets max and stay under 160 words.
+
+  - role: reviewer_jr2
+    node: antonjr2
+    dispatch: remote-agent
+    timeout: 180
+    description: Antonjr2 performs an adversarial review of anton's observer facts
+    prompt: |
+      You are a remote adversarial reviewer running on antonjr2.
+
+      Use exactly one bash command to gather:
+      - hostname
+      - pwd
+
+      Do not use any other tools for this review.
+      Rely only on the observer report from anton plus your own reasoning.
+      Start with hostname and pwd from the bash result.
+      Focus on reproducibility, runtime fragility, and test gaps.
+      End with 4 bullets max and stay under 140 words.
+
+  - role: judge
+    agent: judge
+    strategy: local
+    description: Anton adjudicates the observer facts and both remote reviews
+
+workflow:
+  - role: observer
+    task: |
+      Review the Tempest AI repository in the current directory.
+
+      Start with:
+      - hostname
+      - pwd
+
+      Then report only observed facts about:
+      - repository structure
+      - main runtime entry points
+      - training/configuration modules
+      - test coverage and utilities
+      - git branch/remotes/status
+
+      Scope limit:
+      - README.md
+      - Scripts/config.py
+      - Scripts/main.py
+      - tests/
+      - git status
+
+      Facts only. No recommendations. 12 bullets max.
+  - role: reviewer_jr1
+    task: |
+      Review anton's observer report about the Tempest AI repository.
+
+      OBSERVER REPORT:
+      {{observer.output}}
+
+      Then provide an engineering review focused on:
+      - architecture and subsystem boundaries
+      - training/inference pipeline shape
+      - operational setup and run workflow
+      - the strongest implemented parts
+      - the most important integration or maintenance risks
+
+      Do not use tools. 4 bullets max.
+  - role: reviewer_jr2
+    task: |
+      Perform an adversarial review of anton's observer report about the Tempest AI repository.
+
+      OBSERVER REPORT:
+      {{observer.output}}
+
+      Focus on:
+      - missing tests and reproducibility gaps
+      - deployment and runtime fragility
+      - code and configuration risks that could hurt real-world training
+      - claims in the repo that need evidence
+
+      Do not use tools. 4 bullets max.
+  - role: judge
+    task: |
+      Adjudicate these three reports and produce the final ruling.
+
+      OBSERVER FACTS:
+      {{observer.output}}
+
+      REVIEW FROM ANTONJR1:
+      {{reviewer_jr1.output}}
+
+      REVIEW FROM ANTONJR2:
+      {{reviewer_jr2.output}}
+
+      Requirements:
+      - confirm whether anton acted as observer and judge
+      - confirm whether antonjr1 and antonjr2 executed on their own hosts
+      - accept only claims supported by the reports
+      - call out disagreements or weak claims explicitly
+      - finish with a short action list

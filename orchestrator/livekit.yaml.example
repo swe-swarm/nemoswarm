@@ -1,0 +1,24 @@
+port: 7880
+
+rtc:
+  port_range_start: 50000
+  port_range_end: 50200
+  tcp_port: 7881
+  use_external_ip: false
+
+keys:
+  nemoswarm: LIVEKIT_API_SECRET_HERE
+  rayserve: RAYSERVE_API_SECRET_HERE
+
+room:
+  auto_create: true
+  empty_timeout: 3600
+  departure_timeout: 60
+  max_participants: 50
+
+logging:
+  level: info
+  json: false
+
+# Multi-node: each node runs its own server, agents connect to local server
+# Cross-room federation handled at application layer

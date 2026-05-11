@@ -1,0 +1,53 @@
+name: full-pipeline
+displayName: Full Intelligence Pipeline
+description: |
+  Maximum coverage: observe, research, reason, analyze, critique, synthesize.
+  Six specialists report to a coordinator. Use for high-stakes decisions.
+
+  # Execution Model
+  Sequential phases. Phase 1 (observer+researcher) → Phase 2 (reasoner+analyst) → Phase 3 (critic) → Phase 4 (synthesizer). Each phase feeds its output into the next.
+  Failure: phase failure halts subsequent phases.
+
+agents:
+  - role: observer
+    agent: observer
+    description: Raw fact gathering — what is actually here
+
+  - role: researcher
+    agent: researcher
+    description: Deep information synthesis — context and history
+
+  - role: reasoner
+    agent: reasoner
+    description: Logical breakdown — assumptions, constraints, conclusions
+
+  - role: analyst
+    agent: analyst
+    description: Structured analysis — patterns, metrics, risks
+
+  - role: critic
+    agent: critic
+    description: Adversarial review — flaws, failures, missing cases
+
+  - role: synthesizer
+    agent: synthesizer
+    description: Unified final output — deduplicated, prioritized
+
+coordinator_prompt: |
+  You are coordinating a full six-agent intelligence pipeline.
+
+  Phase 1 — Gather (can be called in any order):
+  - delegate(role='observer', task='<task> — gather all relevant facts')
+  - delegate(role='researcher', task='<task> — research context, history, related implementations')
+
+  Phase 2 — Reason & Analyze (after Phase 1 results received):
+  - delegate(role='reasoner', task='Given these facts:\n\n<observer + researcher outputs>\n\nReason about: <task>')
+  - delegate(role='analyst', task='Analyze these findings:\n\n<observer + researcher outputs>')
+
+  Phase 3 — Challenge (after Phase 2):
+  - delegate(role='critic', task='Critique the following reasoning and analysis:\n\n<reasoner + analyst outputs>')
+
+  Phase 4 — Synthesize:
+  - delegate(role='synthesizer', task='Synthesize ALL of the following into one final report:\n\nOBSERVATIONS: <observer>\nRESEARCH: <researcher>\nREASONING: <reasoner>\nANALYSIS: <analyst>\nCRITIQUE: <critic>\n\nTask: <original task>')
+
+  Return the synthesizer's output directly.

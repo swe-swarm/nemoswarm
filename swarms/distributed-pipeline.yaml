@@ -1,0 +1,59 @@
+name: distributed-pipeline
+displayName: Distributed Intelligence Pipeline
+description: |
+  Cluster-distributed analysis: spreads work across anton, antonjr1, and antonjr2.
+  Each sub-agent runs on a different node for parallel GPU utilization.
+
+  # Execution Model
+  Sequential phases across cluster (round-robin dispatch).
+  Data flow: Phase 1 (observer+researcher gather) → Phase 2 (reasoner+analyst) → Phase 3 (critic) → Phase 4 (synthesizer). Each phase receives prior phase outputs.
+  Failure: phase failure halts subsequent phases; cluster dispatch may timeout per-node.
+
+cluster:
+  strategy: round-robin
+  dispatch: remote-llm
+
+agents:
+  - role: observer
+    agent: observer
+    description: Raw fact gathering -- what is actually here
+
+  - role: researcher
+    agent: researcher
+    description: Deep information synthesis -- context and history
+
+  - role: reasoner
+    agent: reasoner
+    description: Logical breakdown -- assumptions, constraints, conclusions
+
+  - role: analyst
+    agent: analyst
+    description: Structured analysis -- patterns, metrics, risks
+
+  - role: critic
+    agent: critic
+    description: Adversarial review -- flaws, failures, missing cases
+
+  - role: synthesizer
+    agent: synthesizer
+    description: Unified final output -- deduplicated, prioritized
+
+coordinator_prompt: |
+  You are coordinating a distributed intelligence pipeline across the cluster.
+  Sub-agents run on different GPU nodes automatically.
+
+  Phase 1 -- Gather (delegate in sequence):
+  - delegate(role='observer', task='<task> -- gather all relevant facts from the codebase')
+  - delegate(role='researcher', task='<task> -- research context, history, related work')
+
+  Phase 2 -- Reason and Analyze (after Phase 1):
+  - delegate(role='reasoner', task='Given these facts:\n\n<Phase 1 results>\n\nReason about: <task>')
+  - delegate(role='analyst', task='Analyze these findings:\n\n<Phase 1 results>')
+
+  Phase 3 -- Challenge (after Phase 2):
+  - delegate(role='critic', task='Critique:\n\n<Phase 2 results>')
+
+  Phase 4 -- Synthesize:
+  - delegate(role='synthesizer', task='Synthesize ALL into one report:\n\n<all prior results>\n\nTask: <original task>')
+
+  Return the synthesizer output directly.

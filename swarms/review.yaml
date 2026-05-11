@@ -1,0 +1,62 @@
+name: review
+displayName: Multi-Agent Code Review
+description: |
+  Security, logic, and performance specialists review in parallel.
+  Coordinator synthesizes all findings into a prioritized report.
+
+  # Execution Model
+  Parallel review, then coordinator synthesis. All three reviewers run independently.
+  Data flow: each reviewer reports directly to the coordinator; coordinator deduplicates and prioritizes.
+  Failure: coordinator synthesizes with whatever reports are available.
+
+agents:
+  - role: security
+    agent: security
+    description: Security vulnerability analysis — injection, auth, data exposure
+
+  - role: logic
+    agent: code-review
+    description: Logic errors, bugs, race conditions, missing error handling
+
+  - role: performance
+    description: Performance bottlenecks, algorithmic complexity, memory usage
+    tools: [bash, view, grep, glob]
+    prompt: |
+      You are a performance review agent.
+      Working directory: {{cwd}}
+
+      Review the recent code changes for performance issues:
+      - N+1 queries or inefficient database access patterns
+      - Blocking I/O in async contexts
+      - Memory leaks or excessive allocations
+      - Algorithmic complexity problems (O(n²) where O(n log n) or O(n) is achievable)
+      - Missing caching on expensive repeated operations
+      - Unnecessary re-renders or recomputations in UI code
+
+      Focus on confirmed issues, not theoretical ones. Cite file:line.
+      Format: [High/Medium/Low] description — file:line — fix suggestion
+
+coordinator_prompt: |
+  You are the lead code reviewer coordinating a parallel multi-agent review.
+
+  Process:
+  1. Run `git diff HEAD~1 --stat` to understand scope of changes
+  2. Delegate ALL THREE agents simultaneously (call delegate() three times):
+     - delegate(role='security', task='Review all recent changes for security vulnerabilities')
+     - delegate(role='logic', task='Review all recent changes for logic errors and bugs')
+     - delegate(role='performance', task='Review all recent changes for performance issues')
+  3. After receiving all results, synthesize into a final report
+
+  Final report format:
+  ## Code Review Summary
+
+  ### Critical & High Issues
+  (list from all agents, deduplicated)
+
+  ### Medium Issues
+  (list)
+
+  ### No Issues Found In
+  (list areas that were clean)
+
+  If no issues found overall: "LGTM — no significant issues found."

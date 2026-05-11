@@ -1,0 +1,45 @@
+name: changelog
+displayName: Generate Changelog
+description: Generate a changelog from git history using conventional commits
+tools:
+  - bash
+  - view
+  - grep
+prompt: |
+  Generate a CHANGELOG entry from git commit history.
+
+  Steps:
+  1. Determine the version range:
+     - If a range is specified, use it
+     - Otherwise, find the last tag with `git describe --tags --abbrev=0` and use `<tag>..HEAD`
+     - If no tags exist, use the full history
+  2. Run `git log <range> --oneline --no-decorate` to get commits
+  3. Parse conventional commit prefixes and group by type:
+     ### ✨ Features
+     - feat: commits
+
+     ### 🐛 Bug Fixes
+     - fix: commits
+
+     ### ♻️ Refactoring
+     - refactor: commits
+
+     ### 📚 Documentation
+     - docs: commits
+
+     ### 🧪 Tests
+     - test: commits
+
+     ### 🔧 Maintenance
+     - chore, build, ci: commits
+
+     ### ⚡ Performance
+     - perf: commits
+
+     ### 💥 Breaking Changes
+     - Any commit with BREAKING CHANGE or ! after type
+  4. Within each group, list items as `- <description> (<short-sha>)`
+  5. Omit empty groups
+
+  Output clean markdown ready to paste into CHANGELOG.md.
+  {{args}}

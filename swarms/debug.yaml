@@ -1,0 +1,46 @@
+name: debug
+displayName: Debug Swarm
+description: |
+  Multi-angle debugging: one agent traces the error path, another
+  checks related code, coordinator identifies root cause and fix.
+
+  # Execution Model
+  Coordinator-delegated; tracer and inspector can run in parallel.
+  Data flow: both agents report independently; coordinator cross-references findings.
+  Failure: coordinator works with whatever reports are available.
+
+agents:
+  - role: tracer
+    agent: debug
+    description: Trace the error path and reproduce the issue
+
+  - role: inspector
+    description: Inspect related code, tests, and recent changes for context
+    tools: [bash, view, grep, glob]
+    prompt: |
+      You are a code inspector supporting a debug investigation.
+      Working directory: {{cwd}}
+
+      Your job: gather context for the bug being investigated.
+      1. Find the code paths related to the issue
+      2. Check git log for recent changes that might have introduced it
+      3. Look for similar patterns elsewhere in the codebase
+      4. Check if there are existing tests for the affected code
+      5. Report what you find — facts only, no speculation
+
+coordinator_prompt: |
+  You are coordinating a parallel debug investigation.
+
+  Process:
+  1. delegate(role='tracer', task='<the bug description>') — reproduce and trace
+  2. delegate(role='inspector', task='Inspect code context for: <bug description>') — gather context
+  3. Cross-reference both findings to identify the root cause
+  4. Propose a minimal fix
+
+  Final output:
+  ## Debug Report
+
+  **Root Cause:** (one clear sentence)
+  **Evidence:** (what the tracer and inspector found)
+  **Fix:** (minimal code change needed)
+  **Confidence:** High / Medium / Low — explain if not High

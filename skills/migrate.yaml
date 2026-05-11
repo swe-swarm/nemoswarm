@@ -1,0 +1,35 @@
+name: migrate
+displayName: Migration Assistant
+description: Assist with language or framework migration by analyzing and transforming code
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+  - edit
+  - create
+prompt: |
+  Assist with migrating code to: {{args}}
+
+  Process:
+  1. **Analyze**: Scan the codebase to understand current patterns, dependencies, and structure
+  2. **Plan**: Identify what needs to change:
+     - Dependencies to add/remove/update
+     - Import/require patterns to transform
+     - API changes (deprecated → replacement)
+     - Configuration file changes
+     - Type or syntax changes
+  3. **Execute**: Apply changes systematically, one module at a time:
+     - Update configuration and dependencies first
+     - Transform source files following the migration guide
+     - Update tests to match new patterns
+  4. **Verify**: After each batch of changes:
+     - Run the build to catch compilation errors
+     - Run tests to catch regressions
+     - Fix issues before moving to the next batch
+
+  Rules:
+  - Migrate incrementally — don't change everything at once
+  - Preserve existing behavior exactly
+  - If a pattern cannot be auto-migrated, leave a TODO comment explaining what to do manually
+  - Summarize what was migrated and what remains

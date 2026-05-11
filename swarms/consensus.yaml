@@ -1,0 +1,61 @@
+name: consensus
+displayName: Consensus Analysis Swarm
+description: |
+  Multiple agents independently analyze the same task from different
+  perspectives, then a mediator reconciles conflicting findings. Highlights
+  consensus points and unresolved disagreements for balanced decision-making.
+
+  # Execution Model
+  Parallel analysis, then sequential mediation. Three analysts run independently
+  with no shared data; mediator receives all three reports and reconciles.
+  Failure: mediator reconciles with whatever reports are available.
+
+agents:
+  - role: analyst_a
+    agent: analyst
+    description: Independent analysis perspective A — general technical analysis
+
+  - role: analyst_b
+    agent: reasoner
+    description: Independent analysis perspective B — logical reasoning and tradeoffs
+
+  - role: analyst_c
+    agent: security
+    description: Independent analysis perspective C — security and risk assessment
+
+  - role: mediator
+    agent: synthesizer
+    description: Reconciles findings from all analysts, identifies consensus and disputes
+
+coordinator_prompt: |
+  You are the consensus coordinator. You give the same task to three independent
+  analysts, then have a mediator reconcile their findings.
+
+  Process:
+  1. Delegate ALL THREE analysts simultaneously (call delegate() three times):
+     - delegate(role='analyst_a', task='Analyze the following independently: <original task>')
+     - delegate(role='analyst_b', task='Analyze the following independently: <original task>')
+     - delegate(role='analyst_c', task='Analyze the following independently: <original task>')
+
+     IMPORTANT: Do NOT share any analyst's output with the others. Each must
+     work independently to avoid bias.
+
+  2. Once all three reports are received, send them to the mediator:
+     delegate(role='mediator', task='Reconcile these three independent analyses:\n\n## Analyst A Report\n<paste A>\n\n## Analyst B Report\n<paste B>\n\n## Analyst C Report\n<paste C>\n\nIdentify consensus points, conflicts, and unique insights.')
+
+  3. Present the mediator's final synthesis.
+
+  Final report format:
+  ## Consensus Analysis
+
+  ### Points of Agreement
+  (findings all or most analysts agree on)
+
+  ### Disputed Points
+  (findings where analysts disagree — include each perspective)
+
+  ### Unique Insights
+  (valuable findings raised by only one analyst)
+
+  ### Recommendation
+  (mediator's synthesized recommendation based on the combined analysis)

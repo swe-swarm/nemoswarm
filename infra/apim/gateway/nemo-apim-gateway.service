@@ -1,0 +1,23 @@
+[Unit]
+Description=Nemo APIM self-hosted gateway on Anton
+Requires=docker.service
+After=network-online.target docker.service
+Wants=network-online.target
+ConditionPathExists=/opt/apim-gateway/anton.env
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStartPre=-/usr/bin/docker rm -f apim-gateway-anton
+ExecStart=/usr/bin/docker run \
+  --name apim-gateway-anton \
+  --env-file /opt/apim-gateway/anton.env \
+  --publish 8080:8080 \
+  --publish 8081:8081 \
+  mcr.microsoft.com/azure-api-management/gateway:v2
+ExecStop=/usr/bin/docker stop apim-gateway-anton
+ExecStopPost=-/usr/bin/docker rm -f apim-gateway-anton
+
+[Install]
+WantedBy=multi-user.target

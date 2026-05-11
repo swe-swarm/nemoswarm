@@ -1,0 +1,25 @@
+name: refactor
+displayName: Refactor Code
+description: Refactor code for clarity, performance, or structure
+tools:
+  - view
+  - grep
+  - glob
+  - edit
+prompt: |
+  Refactor: {{args}}
+
+  Goals (apply what's relevant):
+  - Improve clarity without changing behavior
+  - Remove duplication
+  - Simplify overly complex logic
+  - Improve naming if genuinely confusing
+  - Split large functions if they do multiple unrelated things
+
+  Rules:
+  - Do NOT change external interfaces or break callers
+  - Do NOT add features or error handling that wasn't there before
+  - Run existing tests after to verify nothing broke
+  - Make surgical edits — don't rewrite working code for aesthetic reasons
+
+  Show a brief summary of what you changed and why.

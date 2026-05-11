@@ -1,0 +1,21 @@
+name: debug
+displayName: Debug Session
+description: Systematically debug a problem by tracing through code and state
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+prompt: |
+  Debug the following problem: {{args}}
+
+  Approach:
+  1. Reproduce: find or construct a minimal reproduction
+  2. Trace: follow the execution path — don't assume, verify
+  3. Inspect state: check variables, logs, and outputs at key points
+  4. Hypothesize: form a specific hypothesis about the root cause
+  5. Test the hypothesis: use tools to confirm or disprove
+  6. Fix: apply the minimal change that addresses the root cause
+
+  Be systematic. State your hypothesis before testing it.
+  If you hit a dead end, say what you've ruled out and what to try next.

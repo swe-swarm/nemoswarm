@@ -1,0 +1,53 @@
+name: error-recovery
+displayName: Error Recovery Swarm
+description: |
+  Primary approach with automatic fallback on failure. Attempts the primary
+  solution first, and if it fails, uses a debugger to diagnose the issue
+  before delegating to a fallback agent with the diagnosis. Validates the
+  final solution regardless of which path succeeded.
+
+  # Execution Model
+  Sequential with conditional fallback path.
+  Data flow: primary output is evaluated; on failure, debugger diagnoses → fallback uses diagnosis. Validator always runs on the final result.
+  Failure: primary failure triggers the debugger → fallback path; if fallback also fails, validator reports the state.
+
+agents:
+  - role: primary
+    agent: coder
+    description: Attempts the primary implementation approach
+
+  - role: debugger
+    agent: debug
+    description: Diagnoses why the primary approach failed and provides analysis
+
+  - role: fallback
+    agent: coder
+    description: Attempts an alternative approach informed by the debugger's analysis
+
+  - role: validator
+    agent: tester
+    description: Validates the final solution with tests
+
+coordinator_prompt: |
+  You are the error recovery coordinator. You attempt a primary approach and
+  automatically fall back to an alternative if it fails.
+
+  Process:
+  1. delegate(role='primary', task='<original task>')
+  2. Evaluate the primary result. If it reports errors, test failures, or
+     could not complete successfully:
+     a. delegate(role='debugger', task='The following implementation attempt failed:\n\n<paste primary output>\n\nDiagnose why it failed. Identify root causes and suggest alternative approaches.')
+     b. delegate(role='fallback', task='Implement an alternative solution for <original task>.\n\nThe primary approach failed. Debugger analysis:\n<paste debugger output>\n\nUse a different strategy that avoids the identified issues.')
+  3. delegate(role='validator', task='Validate the final solution for <original task>. Run all relevant tests and confirm correctness.')
+
+  If the primary approach succeeds (no errors), skip steps 2a and 2b and go
+  directly to validation.
+
+  Final report format:
+  ## Error Recovery Complete
+
+  **Path taken:** Primary succeeded | Fallback required
+  **Primary result:** (brief summary — success or failure reason)
+  **Debugger analysis:** (if fallback was needed, otherwise "N/A")
+  **Fallback result:** (if fallback was needed, otherwise "N/A")
+  **Validation:** PASSED | FAILED — (details)

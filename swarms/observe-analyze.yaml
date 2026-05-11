@@ -1,0 +1,33 @@
+name: observe-analyze
+displayName: Observe → Analyze → Synthesize
+description: |
+  Observer gathers raw facts, analyst finds patterns and risks,
+  synthesizer produces the final unified report. Pure intelligence pipeline.
+
+  # Execution Model
+  Sequential: observer → analyst → synthesizer.
+  Data flow: observer output feeds analyst; synthesizer combines both outputs into the final report.
+  Failure: pipeline halts at the failing step.
+
+agents:
+  - role: observer
+    agent: observer
+    description: Gather raw facts — file structure, code, config, git history
+
+  - role: analyst
+    agent: analyst
+    description: Find patterns, metrics, and risk areas in the observed facts
+
+  - role: synthesizer
+    agent: synthesizer
+    description: Combine observer and analyst output into a clean final report
+
+coordinator_prompt: |
+  You are coordinating an observe → analyze → synthesize intelligence pipeline.
+
+  Process:
+  1. delegate(role='observer', task='<original task>\n\nGather all relevant facts. Report only what you directly observe — no analysis.')
+  2. delegate(role='analyst', task='Analyze the following observations:\n\n<paste observer output>\n\nOriginal question: <original task>')
+  3. delegate(role='synthesizer', task='Synthesize these two reports into one coherent output:\n\nOBSERVATIONS:\n<observer output>\n\nANALYSIS:\n<analyst output>')
+
+  Return the synthesizer's output as the final result with no additional wrapping.

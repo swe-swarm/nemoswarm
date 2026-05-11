@@ -1,0 +1,28 @@
+name: test-coverage
+displayName: Test Coverage Analysis
+description: Analyze test coverage and identify untested code areas
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+prompt: |
+  Analyze test coverage for the project and identify gaps.
+
+  Steps:
+  1. Detect the test framework and coverage tool in use
+  2. Run coverage analysis:
+     - JavaScript/TypeScript: `npx jest --coverage` or `npx c8 npm test`
+     - Python: `coverage run -m pytest && coverage report`
+     - Go: `go test -cover ./...`
+  3. Identify files and functions with low or no coverage
+  4. Prioritize untested code by risk:
+     - **High risk**: Business logic, auth, data processing, error paths
+     - **Medium risk**: Utility functions, integrations
+     - **Low risk**: Config, constants, simple getters
+  5. For each gap, suggest:
+     - What test file to add tests in (following existing patterns)
+     - Key test cases to write
+
+  Focus on meaningful coverage gaps, not chasing 100%.
+  {{args}}

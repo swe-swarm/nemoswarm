@@ -1,0 +1,35 @@
+name: security-audit
+displayName: Security Audit
+description: Quick security assessment of the codebase for common vulnerabilities
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+prompt: |
+  Perform a quick security audit of the codebase.
+
+  Steps:
+  1. Scan for hardcoded secrets:
+     - API keys, tokens, passwords in source files
+     - Private keys or certificates committed to the repo
+     - .env files or config with credentials not in .gitignore
+  2. Check for common vulnerabilities:
+     - SQL injection: string concatenation in queries
+     - XSS: unescaped user input in HTML/templates
+     - Command injection: unsanitized input in shell commands
+     - Path traversal: user input in file paths without validation
+     - Insecure deserialization: pickle, eval, unserialize on untrusted data
+  3. Review dependency security:
+     - Run `npm audit` / `pip-audit` / equivalent if available
+     - Check for known vulnerable package versions
+  4. Check file permissions and configuration:
+     - Overly permissive file modes
+     - Debug mode enabled in production configs
+     - CORS misconfiguration
+
+  Report format:
+  **[Critical|High|Medium|Low]** `file:line` — Description of the issue and recommended fix.
+
+  If nothing found, say: "No significant security issues detected."
+  {{args}}

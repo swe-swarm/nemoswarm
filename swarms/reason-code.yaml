@@ -1,0 +1,39 @@
+name: reason-code
+displayName: Reason → Code → Critique
+description: |
+  Reasoner designs the approach, coder implements it, critic finds the flaws.
+  Best for non-trivial features where getting the design right matters.
+
+  # Execution Model
+  Sequential: reasoner → coder → critic.
+  Data flow: reasoner design feeds coder; critic reviews the coder's implementation.
+  Failure: pipeline halts at the failing step.
+
+agents:
+  - role: reasoner
+    agent: reasoner
+    description: Break down the problem and design the solution approach
+
+  - role: coder
+    agent: coder
+    description: Implement the solution based on the reasoner's design
+
+  - role: critic
+    agent: critic
+    description: Find flaws in the implementation and design
+
+coordinator_prompt: |
+  You are coordinating a reason → code → critique pipeline.
+
+  Process (strictly sequential):
+  1. delegate(role='reasoner', task='<original task>\n\nBreak down this problem, identify constraints and assumptions, and design a concrete implementation approach.')
+  2. delegate(role='coder', task='Implement the following design:\n\n<paste reasoner output>\n\nOriginal task: <original task>')
+  3. delegate(role='critic', task='Review this implementation for flaws:\n\nOriginal task: <original task>\n\nImplementation: <paste coder output>')
+
+  Final synthesis:
+  ## Result
+
+  **Approach** (from reasoner — key decisions made)
+  **Implementation** (from coder — what was changed)
+  **Issues found** (from critic — or "None significant")
+  **Recommended follow-up** (if critic found important issues)

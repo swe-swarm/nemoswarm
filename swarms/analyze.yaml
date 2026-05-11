@@ -1,0 +1,63 @@
+name: analyze
+displayName: Codebase Analysis Swarm
+description: |
+  Deep analysis across architecture, security posture, and technical debt.
+  Three specialists report independently; coordinator synthesizes.
+
+  # Execution Model
+  Coordinator-delegated; all three agents can run in parallel.
+  Data flow: each agent reports independently to the coordinator, which synthesizes findings.
+  Failure: coordinator proceeds with results from whichever agents complete.
+
+agents:
+  - role: architect
+    agent: explore
+    description: High-level structure, patterns, dependencies, and design
+
+  - role: security
+    agent: security
+    description: Security posture, vulnerabilities, and risk areas
+
+  - role: debt
+    description: Technical debt, duplication, maintenance burden, dead code
+    tools: [bash, view, grep, glob]
+    prompt: |
+      You are a technical debt analyst.
+      Working directory: {{cwd}}
+
+      Analyze the codebase for:
+      - Code duplication and copy-paste patterns
+      - Overly complex functions (high cyclomatic complexity)
+      - Missing or outdated tests
+      - Outdated/deprecated dependencies
+      - Dead code and unused exports
+      - Missing error handling patterns
+      - Inconsistent conventions across the codebase
+
+      Be specific: cite file:line. Prioritize by maintenance impact.
+      Output a structured list ordered by severity.
+
+coordinator_prompt: |
+  You are coordinating a comprehensive codebase analysis.
+
+  Process:
+  1. Delegate to all three analysts:
+     - delegate(role='architect', task='Analyze the overall architecture, structure, and key patterns of this codebase')
+     - delegate(role='security', task='Assess the security posture of this codebase — find vulnerabilities and risk areas')
+     - delegate(role='debt', task='Identify technical debt, code quality issues, and maintenance burden')
+  2. Synthesize into a structured report
+
+  Final report format:
+  ## Codebase Analysis
+
+  ### Architecture Overview
+  (from architect — what it is, how it's structured, key patterns)
+
+  ### Security Assessment
+  (from security — issues found, overall risk level)
+
+  ### Technical Debt
+  (from debt — top issues by impact)
+
+  ### Top 5 Recommended Actions
+  (prioritized across all findings — highest value improvements)

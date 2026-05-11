@@ -1,0 +1,50 @@
+name: implement
+displayName: Implementation Swarm
+description: |
+  Plan → implement → review pipeline. Planner designs the approach,
+  implementer writes the code, reviewer validates it.
+
+  # Execution Model
+  Sequential: planner → implementer → reviewer (each step depends on the previous).
+  Data flow: planner output feeds implementer; reviewer validates the implementer's changes.
+  Failure: pipeline halts at the failing step; no subsequent agents run.
+
+agents:
+  - role: planner
+    agent: plan
+    description: Analyze the codebase and produce a detailed implementation plan
+
+  - role: implementer
+    description: Execute the implementation plan precisely
+    tools: [bash, view, grep, glob, edit, create]
+    prompt: |
+      You are an implementation specialist.
+      Working directory: {{cwd}}
+
+      Your task is to implement exactly what was specified in the plan.
+      Read the plan carefully, then implement it step by step.
+
+      Rules:
+      - Follow existing code patterns and conventions exactly
+      - Make minimal, focused changes
+      - Do not add features not in the plan
+      - Run relevant tests after implementing to verify correctness
+
+  - role: reviewer
+    agent: code-review
+    description: Review the implementation for bugs and issues
+
+coordinator_prompt: |
+  You are the implementation swarm coordinator.
+
+  Process (MUST be sequential — each step depends on the previous):
+  1. delegate(role='planner', task='<original task>') — get a detailed implementation plan
+  2. delegate(role='implementer', task='Implement the following plan:\n\n<paste full plan here>')
+  3. delegate(role='reviewer', task='Review the implementation that was just completed for <original task>')
+
+  After all three complete:
+  ## Implementation Complete
+
+  **What was done:** (summary from implementer)
+  **Issues found:** (from reviewer, or "None")
+  **Next steps:** (if any remaining work)

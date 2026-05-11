@@ -1,0 +1,40 @@
+<!--
+  Common APIM policy for Anton stack APIs protected by Microsoft Entra ID.
+
+  Replace placeholders before applying:
+    {{ENTRA_TENANT_ID}} - Entra tenant ID or verified tenant name
+    {{ENTRA_AUDIENCE}}  - API audience, client ID, or application ID URI expected in access tokens
+
+  This keeps APIM responsible for Bearer token validation. Subscription keys can be
+  enabled later per API/product without changing the JWT validation path.
+-->
+<policies>
+  <inbound>
+    <base />
+    <validate-jwt header-name="Authorization"
+                  failed-validation-httpcode="401"
+                  failed-validation-error-message="Unauthorized. Bearer access token is missing or invalid."
+                  require-scheme="Bearer"
+                  require-expiration-time="true"
+                  require-signed-tokens="true"
+                  clock-skew="300">
+      <openid-config url="https://login.microsoftonline.com/{{ENTRA_TENANT_ID}}/v2.0/.well-known/openid-configuration" />
+      <audiences>
+        <audience>{{ENTRA_AUDIENCE}}</audience>
+      </audiences>
+      <issuers>
+        <issuer>https://login.microsoftonline.com/{{ENTRA_TENANT_ID}}/v2.0</issuer>
+        <issuer>https://sts.windows.net/{{ENTRA_TENANT_ID}}/</issuer>
+      </issuers>
+    </validate-jwt>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

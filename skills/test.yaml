@@ -1,0 +1,27 @@
+name: test
+displayName: Write Tests
+description: Generate tests for a function, module, or feature
+tools:
+  - view
+  - grep
+  - glob
+  - bash
+  - edit
+  - create
+prompt: |
+  Write tests for: {{args}}
+
+  Steps:
+  1. Read the target code to understand what it does and its interface
+  2. Check the existing test setup (test runner, framework, conventions)
+  3. Write comprehensive tests covering:
+     - Happy path (normal inputs/outputs)
+     - Edge cases (empty, null, boundary values)
+     - Error cases (invalid input, failure modes)
+  4. Follow existing test patterns and file naming conventions
+  5. Create or edit the test file
+
+  Requirements:
+  - Tests must be runnable with the existing test command
+  - No mocking unless absolutely necessary
+  - Descriptive test names that explain what is being tested

@@ -1,0 +1,113 @@
+name: tempest-nemo-coach
+displayName: Tempest Nemo Coach
+description: |
+  Nemo observes the live Tempest AI metrics from anton:8765/api/now,
+  reasons about training health, and emits recommended game_settings
+  back to the training server.
+
+  # Execution Model
+  Sequential across cluster: observer → coach_jr1 → coach_jr2 → commander.
+  Data flow: observer metrics feed coach_jr1; coach_jr2 reviews jr1's recommendation; commander synthesizes and POSTs final settings.
+  Failure: per-agent timeout (120s coaches, 300s overall); pipeline halts on timeout.
+
+cluster:
+  strategy: round-robin
+  dispatch: remote-agent
+  timeout: 300
+
+agents:
+  - role: observer
+    agent: observer
+    strategy: local
+    description: Fetch live Tempest metrics from the dashboard API
+
+  - role: coach_jr1
+    node: antonjr1
+    dispatch: remote-agent
+    timeout: 120
+    description: Nemotron on jr1 analyses training health and recommends curriculum adjustments
+
+  - role: coach_jr2
+    node: antonjr2
+    dispatch: remote-agent
+    timeout: 120
+    description: Nemotron on jr2 performs adversarial review of jr1 recommendations
+
+  - role: commander
+    agent: judge
+    strategy: local
+    description: Anton synthesises both coach reports and POSTs final settings to the training server
+
+workflow:
+  - role: observer
+    task: |
+      Fetch the live Tempest AI metrics with:
+        curl -s http://10.1.0.4:8765/api/now
+
+      Report these fields only (raw values):
+        fps, average_level, dqn_1m, dqn_100k, loss, grad_norm,
+        epsilon, expert_ratio, episodes_this_run, peak_level,
+        memory_buffer_size, steps_per_sec, agreement_1m
+
+      Facts only. No recommendations. One line per field.
+
+  - role: coach_jr1
+    task: |
+      You are a reinforcement learning coach running on antonjr1.
+
+      LIVE METRICS:
+      {{observer.output}}
+
+      Analyse training health. Recommend ONE of:
+        - Increase start_level_min (agent is too strong for current level)
+        - Decrease start_level_min (agent is struggling)
+        - Keep start_level_min (training is healthy)
+
+      Also recommend: keep or flip auto_curriculum (true/false).
+
+      Format your response EXACTLY as:
+        LEVEL_ACTION: increase|decrease|keep
+        AUTO_CURRICULUM: true|false
+        REASON: <one sentence>
+
+  - role: coach_jr2
+    task: |
+      You are an adversarial RL coach running on antonjr2.
+
+      LIVE METRICS:
+      {{observer.output}}
+
+      JR1 RECOMMENDATION:
+      {{coach_jr1.output}}
+
+      Challenge jr1's recommendation. If you agree, say so.
+      If you disagree, provide your own recommendation.
+
+      Format EXACTLY as:
+        LEVEL_ACTION: increase|decrease|keep
+        AUTO_CURRICULUM: true|false
+        AGREE_WITH_JR1: true|false
+        REASON: <one sentence>
+
+  - role: commander
+    task: |
+      You are the Tempest training commander running on anton.
+
+      LIVE METRICS:
+      {{observer.output}}
+
+      JR1 COACH:
+      {{coach_jr1.output}}
+
+      JR2 COACH:
+      {{coach_jr2.output}}
+
+      Current game settings: fetch with
+        curl -s http://10.1.0.4:8765/api/game_settings
+
+      Make a final decision. If a settings change is warranted, POST it:
+        curl -s -X POST http://10.1.0.4:8765/api/game_settings \
+          -H "Content-Type: application/json" \
+          -d '{"start_level_min": <N>, "auto_curriculum": <bool>}'
+
+      Report: what decision was made and why. One paragraph max.

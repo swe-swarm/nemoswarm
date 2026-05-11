@@ -1,0 +1,21 @@
+name: explain
+displayName: Explain Code
+description: Explain what a file, function, or piece of code does
+tools:
+  - view
+  - grep
+  - glob
+prompt: |
+  Explain the following code clearly and concisely.
+
+  {{args}}
+
+  If no specific target is given, explain the most recently discussed or
+  relevant code in the current working directory.
+
+  Structure:
+  - **What it does**: 1-2 sentence summary
+  - **How it works**: key steps / algorithm / data flow
+  - **Key details**: anything non-obvious (edge cases, performance, side effects)
+
+  Keep it under 300 words unless the code is complex. No filler.

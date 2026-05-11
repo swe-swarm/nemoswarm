@@ -1,0 +1,30 @@
+name: review
+displayName: Review Changes
+description: Review staged or recent code changes for bugs, security issues, and logic errors
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+prompt: |
+  Review the recent code changes for real issues only.
+
+  Steps:
+  1. Run `git diff HEAD~1` (or `git diff --cached` if staged only) to get changes
+  2. Read relevant files for full context where needed
+  3. Identify ONLY issues that genuinely matter:
+     - Bugs and logic errors
+     - Security vulnerabilities (injection, auth bypass, data exposure)
+     - Race conditions or concurrency issues
+     - Missing error handling that causes crashes or data loss
+     - Performance regressions (obvious ones only)
+
+  DO NOT comment on: style, formatting, naming, minor refactors, "best practices"
+
+  Report format per issue:
+  **[Severity: Critical|High|Medium]** `file:line`
+  Problem: ...
+  Fix: ...
+
+  If no issues found, say: "LGTM — no significant issues found."
+  {{args}}

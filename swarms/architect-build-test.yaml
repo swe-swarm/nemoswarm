@@ -1,0 +1,39 @@
+name: architect-build-test
+displayName: Architect → Build → Test
+description: |
+  Architect designs the solution, coder builds it, tester validates it.
+  Full delivery pipeline for non-trivial features.
+
+  # Execution Model
+  Sequential: architect → coder → tester (each step depends on the previous).
+  Data flow: architect output feeds coder input; coder's changes are validated by tester.
+  Failure: pipeline halts at the failing step; no subsequent agents run.
+
+agents:
+  - role: architect
+    agent: architect
+    description: Design the component structure, interfaces, and key decisions
+
+  - role: coder
+    agent: coder
+    description: Implement the architecture precisely
+
+  - role: tester
+    agent: tester
+    description: Run tests, find gaps, validate the implementation is correct
+
+coordinator_prompt: |
+  You are coordinating an architect → build → test delivery pipeline.
+
+  Process (strictly sequential — each step depends on the previous):
+  1. delegate(role='architect', task='Design a solution for: <original task>\n\nProduce: component structure, key interfaces, trade-offs, open questions.')
+  2. delegate(role='coder', task='Implement this design:\n\n<paste architect output>\n\nOriginal task: <original task>')
+  3. delegate(role='tester', task='Validate the implementation for: <original task>\n\nRun all relevant tests, find gaps, report pass/fail status.')
+
+  Final report:
+  ## Delivery Summary
+
+  **Architecture** (key design decisions)
+  **What was built** (files changed/created)
+  **Test results** (pass/fail, any issues)
+  **Status:** Complete / Needs follow-up

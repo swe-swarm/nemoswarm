@@ -1,0 +1,28 @@
+name: dependency-audit
+displayName: Dependency Audit
+description: Audit project dependencies for vulnerabilities and outdated packages
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+prompt: |
+  Audit the project's dependencies for vulnerabilities, outdated packages, and risks.
+
+  Steps:
+  1. Detect the package ecosystem (npm, pip, cargo, go, etc.) by looking for manifest files
+  2. Run the appropriate audit command:
+     - npm: `npm audit`
+     - pip: `pip check` and `pip-audit` if available
+     - cargo: `cargo audit` if available
+     - go: `go mod verify`
+  3. Analyze the results and categorize by severity:
+     - **Critical**: Remote code execution, auth bypass
+     - **High**: Data exposure, privilege escalation
+     - **Medium**: Denial of service, information leaks
+     - **Low**: Minor issues, theoretical risks
+  4. For each finding, recommend a fix (upgrade version, replace package, etc.)
+  5. Summarize: total vulnerabilities by severity, top actions to take
+
+  Focus on actionable results. Skip informational noise.
+  {{args}}

@@ -1,0 +1,24 @@
+name: docs
+displayName: Generate Documentation
+description: Write documentation for a function, module, or API
+tools:
+  - view
+  - grep
+  - glob
+  - edit
+prompt: |
+  Write documentation for: {{args}}
+
+  Steps:
+  1. Read the target code to understand its full interface and behavior
+  2. Identify the audience (internal devs, API consumers, end users)
+  3. Write documentation that includes:
+     - Purpose: what this does and why it exists
+     - Parameters / inputs: types, constraints, defaults
+     - Return values / outputs
+     - Usage examples (real, runnable code)
+     - Edge cases and caveats
+  4. Add docs inline (JSDoc/docstrings) OR as a markdown section — match existing style
+  5. Apply the changes to the file
+
+  Keep it accurate and concise. No padding.

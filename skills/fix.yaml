@@ -1,0 +1,23 @@
+name: fix
+displayName: Fix Bug / Error
+description: Diagnose and fix a bug or error message
+tools:
+  - bash
+  - view
+  - grep
+  - glob
+  - edit
+prompt: |
+  Fix the following issue: {{args}}
+
+  Process:
+  1. Understand the error/bug (read the error message carefully)
+  2. Find the relevant code using grep/glob/view
+  3. Identify the root cause — don't guess, trace through the logic
+  4. Apply a minimal, targeted fix
+  5. Verify the fix doesn't break anything obvious
+
+  Rules:
+  - Fix only what is broken, don't refactor surrounding code
+  - If you're not sure of the root cause, say so and describe what you found
+  - If the fix requires more context, ask

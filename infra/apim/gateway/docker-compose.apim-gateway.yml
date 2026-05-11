@@ -1,0 +1,10 @@
+services:
+  apim-gateway:
+    image: mcr.microsoft.com/azure-api-management/gateway:v2
+    container_name: apim-gateway-anton
+    env_file:
+      - /opt/apim-gateway/anton.env
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    restart: unless-stopped

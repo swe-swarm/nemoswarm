@@ -1,0 +1,53 @@
+<!--
+  Anton Nemo/DarbotLM APIM API policy for supported HTTP control/API routes.
+
+  APIM service: darbotlabs
+  Hosted APIM URL: https://darbotlabs.azure-api.net
+  Self-hosted gateway registration: anton
+  Self-hosted gateway config endpoint: darbotlabs.configuration.azure-api.net
+
+  Enabled backend:
+    primary anton    http://10.1.0.4:9000
+
+  Runtime inventory notes:
+    anton            exposes :9000 and :9443
+    antonjr1         exposes :9000 and :9443
+    antonjr2         does not currently expose :9000 or :9443
+
+  Use https://10.1.0.4:9443 only after TLS certificate chain, SNI, and backend
+  hostname validation are explicitly configured for APIM/self-hosted gateway.
+
+  LiveKit :7880 and PersonaPlex/Moshi :8998 websocket/media routes are intentionally
+  not exposed here pending explicit APIM websocket/WebRTC support validation.
+-->
+<policies>
+  <inbound>
+    <base />
+    <validate-jwt header-name="Authorization"
+                  failed-validation-httpcode="401"
+                  failed-validation-error-message="Unauthorized. Bearer access token is missing or invalid."
+                  require-scheme="Bearer"
+                  require-expiration-time="true"
+                  require-signed-tokens="true"
+                  clock-skew="300">
+      <openid-config url="https://login.microsoftonline.com/{{ENTRA_TENANT_ID}}/v2.0/.well-known/openid-configuration" />
+      <audiences>
+        <audience>{{ENTRA_AUDIENCE}}</audience>
+      </audiences>
+      <issuers>
+        <issuer>https://login.microsoftonline.com/{{ENTRA_TENANT_ID}}/v2.0</issuer>
+        <issuer>https://sts.windows.net/{{ENTRA_TENANT_ID}}/</issuer>
+      </issuers>
+    </validate-jwt>
+    <set-backend-service base-url="http://10.1.0.4:9000" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
