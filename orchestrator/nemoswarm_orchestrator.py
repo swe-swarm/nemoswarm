@@ -178,6 +178,12 @@ async def main():
     framer_p = sub.add_parser("framer", help="Manage framer services")
     framer_p.add_argument("action", choices=["status", "restart-livekit", "restart-agents", "logs"])
 
+    yank_p = sub.add_parser("yankers", help="Run an AgentYankers call on the cluster LiveKit host")
+    yank_p.add_argument("--fixture", required=True, help="Fictional call bundle JSON")
+    yank_p.add_argument("--mark", default=None, help="mark_id to call")
+    yank_p.add_argument("--out", required=True, help="Directory for call_session.json and the call wav")
+    yank_p.add_argument("--live", action="store_true", help="Open a real LiveKit room and load PersonaPlex")
+
     args = parser.parse_args()
 
     if args.command == "status":
@@ -201,6 +207,13 @@ async def main():
     elif args.command == "framer":
         output = await manage_framer(args.action)
         print(output)
+
+    elif args.command == "yankers":
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if root not in sys.path:
+            sys.path.insert(0, root)
+        from orchestrator.agentyankers.session import run_fixture_cli
+        run_fixture_cli(args)
 
     else:
         parser.print_help()
