@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node bin/nemo.js",
-    "test": "find src -type f -name '*.test.js' -print0 | sort -z | xargs -0 node --test"
+    "test": "find src -type f -name '*.test.js' -print0 | sort -z | xargs -0 node --test && python3 -m unittest orchestrator.agentyankers.test_host"
   },
   "dependencies": {
     "@livekit/rtc-node": "^0.13.25",

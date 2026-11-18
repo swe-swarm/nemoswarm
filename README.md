@@ -14,7 +14,7 @@
 | `swarms/` | YAML swarm definitions (consensus, full-pipeline, cluster-review, …) |
 | `skills/` | Slash-command macros (`/commit`, `/review`, `/fix`, …) |
 | `mcp-servers/` | Built-in MCP server (`dlmcp.js`) |
-| `orchestrator/` | `nemoswarm_orchestrator.py` — Python cluster health + chain-of-thought swarm runner; `livekit.yaml.example` |
+| `orchestrator/` | `nemoswarm_orchestrator.py` — Python cluster health + chain-of-thought swarm runner; `livekit.yaml.example`; `agentyankers/` live call host |
 | `framer/` | `personaplex_bridge.py` — Moshi WS ↔ LiveKit audio bridge; `nemotron_agent.py` — per-node LiveKit agent |
 | `infra/` | APIM / deployment configs |
 
@@ -260,6 +260,20 @@ nemo --backend livekit --room ops --identity nemo --agent reviewer
 ```
 
 ---
+
+## AgentYankers
+
+`orchestrator/agentyankers/` is the live call host for the AgentYankers podcast. The show model stays in `genaid_audio.agentyankers` (`agentyankers/v1`) and is imported when that package is installed. This repo opens the LiveKit room on anton / antonjr1 / antonjr2, injects PersonaPlex for caller improvisation and VibeVoice for host commentary, and writes a `CallSession` (`call_session.json` plus a 24 kHz recording ref) for `EpisodePipeline`.
+
+Consent is checked before a room opens. The recording disclosure is the first transcript turn and cannot be replaced. Marks are `agent:`, `lk-identity:`, or `room:` refs. Phone numbers are refused. Voices are resolved under `GENAID_VOICES_DIR` and are not copied into this repo. LiveKit and model credentials stay in environment variables.
+
+```bash
+python3 -m orchestrator.agentyankers \
+  --fixture orchestrator/agentyankers/fixtures/lobby-light.json \
+  --out /tmp/agentyankers-call
+```
+
+See `orchestrator/agentyankers/README.md`.
 
 ## Cluster manager
 
