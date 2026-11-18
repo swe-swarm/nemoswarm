@@ -8,6 +8,7 @@ unless that engine is injected or the optional import succeeds.
 
 from __future__ import annotations
 
+import inspect
 import math
 import os
 import shutil
@@ -127,10 +128,21 @@ def _as_request(payload: dict[str, Any]) -> Any:
 
 
 def _accepts_keyword(func: Any, name: str) -> bool:
-    code = getattr(func, "__code__", None)
-    if code is None:
-        return True
-    return name in code.co_varnames or code.co_flags & 0x08
+    """True only when the callable can take ``name`` as a keyword.
+
+    Builtins and other callables without an inspectable signature return False,
+    so a required host argument such as ``output_dir`` is not passed blindly.
+    """
+    try:
+        signature = inspect.signature(func)
+    except (TypeError, ValueError):
+        return False
+    for parameter in signature.parameters.values():
+        if parameter.kind is inspect.Parameter.VAR_KEYWORD:
+            return True
+        if parameter.name == name and parameter.kind is not inspect.Parameter.POSITIONAL_ONLY:
+            return True
+    return False
 
 
 def _coerce_turn(result: Any, context: Any) -> PersonaPlexTurn:

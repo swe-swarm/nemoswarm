@@ -24,7 +24,7 @@ from orchestrator.agentyankers.contract import (
     VibeVoiceRuntimeUnavailable,
 )
 from orchestrator.agentyankers.livekit_host import InMemoryLiveKit, NemoswarmLiveKitAdapter
-from orchestrator.agentyankers.personaplex_host import NemoswarmPersonaPlexAdapter
+from orchestrator.agentyankers.personaplex_host import NemoswarmPersonaPlexAdapter, _accepts_keyword
 from orchestrator.agentyankers.session import YankersCallHost, load_fixture, run_fixture
 from orchestrator.agentyankers.vibevoice_host import NemoswarmVibeVoiceRenderer
 
@@ -186,6 +186,34 @@ class HostTests(unittest.TestCase):
         self.assertIn(ENV_PERSONAPLEX_MODEL, str(caught.exception))
         self.assertNotIn("safetensors", str(caught.exception))
 
+        class PositionalEngine:
+            def __init__(self) -> None:
+                self.calls = []
+
+            def generate(self, request):
+                self.calls.append(request)
+                return SimpleNamespace(
+                    text="The fern heard that.",
+                    audio=[0.1] * 480,
+                    sample_rate=SAMPLE_RATE,
+                )
+
+        positional = PositionalEngine()
+        NemoswarmPersonaPlexAdapter(engine=positional, live=True).generate(SimpleNamespace(
+            agent_name="Bramble",
+            mark_utterance="The fern is listening.",
+            speaker_name="NATM1.pt",
+            voice_prompt_path=None,
+            input_audio_path=None,
+            text_prompt="Improvise from this premise outline. Do not read a script.",
+            response_tail_seconds=1.5,
+            seed=None,
+            sample_rate=SAMPLE_RATE,
+        ))
+        self.assertEqual(len(positional.calls), 1)
+        self.assertFalse(_accepts_keyword(len, "output_dir"))
+        self.assertTrue(_accepts_keyword(lambda request, output_dir=None: None, "output_dir"))
+
     def test_live_room_requires_env_and_does_not_copy_secrets(self) -> None:
         bare = NemoswarmLiveKitAdapter(live=True, env={})
         with self.assertRaises(CredentialsMissing) as missing:
@@ -226,7 +254,9 @@ class HostTests(unittest.TestCase):
         class Boom:
             def create_room(self, **kwargs):
                 del kwargs
-                raise RuntimeError(f"auth rejected {SECRET}")
+                raise RuntimeError(
+                    f"auth rejected ws://livekit.internal key nemoswarm secret {SECRET}"
+                )
 
             def delete_room(self, *, room):
                 del room
@@ -242,8 +272,20 @@ class HostTests(unittest.TestCase):
         )
         with self.assertRaises(LiveTransportUnavailable) as transport:
             leaking.create_room(self._config())
-        self.assertNotIn(SECRET, str(transport.exception))
-        self.assertNotIn(SECRET, json.dumps(transport.exception.room_spec))
+        message = str(transport.exception)
+        spec_blob = json.dumps(transport.exception.room_spec)
+        for secret in ("ws://livekit.internal", "nemoswarm", SECRET):
+            self.assertNotIn(secret, message)
+            self.assertNotIn(secret, spec_blob)
+
+        tainted = self._config()
+        tainted.metadata = {"endpoint": "ws://livekit.internal"}
+        blocked = InMemoryLiveKit()
+        guarded = NemoswarmLiveKitAdapter(live=True, rooms=blocked, env=adapter.env)
+        with self.assertRaises(LiveTransportUnavailable) as refused:
+            guarded.create_room(tainted)
+        self.assertEqual(blocked.created, [])
+        self.assertNotIn("ws://livekit.internal", str(refused.exception))
 
     def test_vibevoice_references_the_voice_library_without_copying_it(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

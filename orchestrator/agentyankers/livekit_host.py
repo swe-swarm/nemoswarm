@@ -260,25 +260,47 @@ class NemoswarmLiveKitAdapter:
             str(source[ENV_LIVEKIT_API_SECRET]).strip(),
         )
 
-    def _reject_secret_leak(self, payload: Any) -> None:
+    def _credential_values(self) -> list[str]:
+        """Live values that must never appear in a room plan or an error."""
         if not self.live:
-            return
-        secret = str((self.env if self.env is not None else os.environ).get(ENV_LIVEKIT_API_SECRET, ""))
-        if secret and secret in json.dumps(payload):
+            return []
+        source = self.env if self.env is not None else os.environ
+        values = []
+        for name in (ENV_LIVEKIT_URL, ENV_LIVEKIT_API_KEY, ENV_LIVEKIT_API_SECRET):
+            value = str(source.get(name, "")).strip()
+            if value:
+                values.append(value)
+        return values
+
+    def _contains_credential(self, text: str) -> bool:
+        return any(value in text for value in self._credential_values())
+
+    def _reject_secret_leak(self, payload: Any) -> None:
+        if self._contains_credential(json.dumps(payload)):
             raise LiveTransportUnavailable("Refusing to copy LiveKit credentials into the room plan.")
 
     def _clean_transport_error(self, exc: Exception, spec: dict[str, Any]) -> LiveTransportUnavailable:
-        secret = ""
-        if self.live:
-            secret = str((self.env if self.env is not None else os.environ).get(ENV_LIVEKIT_API_SECRET, ""))
         text = str(exc)
-        if secret and secret in text:
-            text = "LiveKit transport failed."
-        elif not text:
+        if not text or self._contains_credential(text):
             text = "LiveKit transport failed."
         else:
             text = f"LiveKit transport failed: {text}"
-        return LiveTransportUnavailable(text, room_spec=spec)
+        return LiveTransportUnavailable(text, room_spec=self._scrub_credentials(spec))
+
+    def _scrub_credentials(self, value: Any) -> Any:
+        if isinstance(value, str):
+            scrubbed = value
+            for secret in self._credential_values():
+                scrubbed = scrubbed.replace(secret, "[redacted]")
+            return scrubbed
+        if isinstance(value, dict):
+            return {
+                self._scrub_credentials(key): self._scrub_credentials(item)
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [self._scrub_credentials(item) for item in value]
+        return value
 
 
 class _LiveKitServerRooms:
