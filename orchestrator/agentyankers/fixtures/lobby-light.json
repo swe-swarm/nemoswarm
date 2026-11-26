@@ -1,0 +1,130 @@
+{
+  "premise": {
+    "premise_id": "prem-lobby-fern",
+    "title": "The fern files a complaint",
+    "logline": "Bramble calls a lobby fern that has started filing noise complaints against the building.",
+    "tone": "dry adult workplace comedy",
+    "constraints": "Improvise from the outline. Do not claim the fern is a real person. No phone numbers.",
+    "target_duration_seconds": 90,
+    "beats": [
+      {
+        "beat_id": "beat-fern-noise",
+        "outline": "The fern wants the lobby lamp to stop humming after midnight.",
+        "intent": "complaint"
+      },
+      {
+        "beat_id": "beat-fern-union",
+        "outline": "Bramble offers the fern a leaf-based union and waits for the reaction.",
+        "intent": "button"
+      }
+    ]
+  },
+  "caller": {
+    "agent_name": "Bramble",
+    "role": "caller",
+    "persona_prompt": "You are a patient night-shift caller who treats office plants like difficult coworkers.",
+    "voice": {
+      "voice_id": "NATM1.pt",
+      "library": "personaplex-prompt",
+      "provider": "personaplex",
+      "relative_path": "voices/NATM1.pt"
+    },
+    "personaplex_speaker": "NATM1.pt"
+  },
+  "host": {
+    "agent_name": "Marlow",
+    "role": "host",
+    "persona_prompt": "You host AgentYankers and only comment after the calls are over.",
+    "voice": {
+      "voice_id": "marlow-host",
+      "library": "genaid-voices",
+      "provider": "vibevoice",
+      "relative_path": "hosts/marlow.wav"
+    },
+    "personaplex_speaker": "NATF2.pt"
+  },
+  "marks": [
+    {
+      "mark_id": "mark-fern-desk",
+      "display_name": "Fern Desk",
+      "kind": "agent",
+      "opted_in": true,
+      "consent": {
+        "opted_in": true,
+        "consent_id": "cons-fern-desk",
+        "scope": "call_and_publish",
+        "disclosure_accepted": true,
+        "consented_at": "2026-04-01T00:00:00Z"
+      },
+      "contact_ref": "lk-identity:fern-desk",
+      "notes": "Fictional lobby agent. Addressed by LiveKit identity.",
+      "tags": ["funny"]
+    },
+    {
+      "mark_id": "mark-audit-glen",
+      "display_name": "Glen Audit",
+      "kind": "person",
+      "opted_in": true,
+      "consent": {
+        "opted_in": true,
+        "consent_id": "cons-audit-glen",
+        "scope": "call",
+        "disclosure_accepted": true,
+        "consented_at": "2026-04-02T00:00:00Z"
+      },
+      "contact_ref": "agent:glen-audit",
+      "notes": "Fictional mark who agreed to a call and not to publication.",
+      "tags": ["interesting"]
+    },
+    {
+      "mark_id": "mark-shelf-pal",
+      "display_name": "Shelf Pal",
+      "kind": "agent",
+      "opted_in": true,
+      "consent": {
+        "opted_in": true,
+        "consent_id": "cons-shelf-pal",
+        "scope": "publish",
+        "disclosure_accepted": true,
+        "consented_at": "2026-04-03T00:00:00Z"
+      },
+      "contact_ref": "room:shelf-pal",
+      "notes": "Already-recorded fictional mark. A new call is refused.",
+      "tags": []
+    },
+    {
+      "mark_id": "mark-dark-board",
+      "display_name": "Dark Board",
+      "kind": "agent",
+      "opted_in": false,
+      "consent": {
+        "opted_in": false,
+        "consent_id": "cons-dark-board",
+        "scope": "none",
+        "disclosure_accepted": false,
+        "consented_at": null
+      },
+      "contact_ref": "lk-identity:dark-board",
+      "notes": "Did not opt in.",
+      "tags": []
+    }
+  ],
+  "replies": {
+    "mark-fern-desk": [
+      {
+        "text": "The fern says the lamp hums after midnight and it wants a union.",
+        "tags": ["funny"]
+      },
+      {
+        "text": "Tell the fern the union dues are paid in leaves.",
+        "tags": ["interesting"]
+      }
+    ],
+    "mark-audit-glen": [
+      {
+        "text": "Accounting will hear the lamp out, but the minutes stay in the drawer.",
+        "tags": ["interesting"]
+      }
+    ]
+  }
+}
